@@ -36,8 +36,8 @@ __global__ void kernel_random(float *dev_random_array,int width,int height,curan
 
 int main()
 {
-    const int array_size_width = 1000;
-    const int array_size_height = 1000;
+    const int array_size_width = 10;
+    const int array_size_height = 10;
     float random_array[array_size_width*array_size_height];
     for(int i=0;i<array_size_width*array_size_height;i++)
     {
@@ -81,19 +81,41 @@ int main()
     dim3 grid((array_size_width+threads.x-1)/threads.x,1);  
 
     kernel_set_random<<<grid,threads>>>(dev_states,array_size_width,array_size_height,clock_for_rand);
-    kernel_random<<<grid,threads>>>(dev_random_array,array_size_width,array_size_height,dev_states);
 
-    //copy out the result
-    cuda_status = cudaMemcpy(random_array,dev_random_array,sizeof(float)*array_size_width*array_size_height,cudaMemcpyDeviceToHost);//dev_depthMap
-    if(cuda_status != cudaSuccess)
+    printf("The first time \n");
     {
-        fprintf(stderr,"cudaMemcpy Failed");
-        exit( EXIT_FAILURE );
+        kernel_random<<<grid,threads>>>(dev_random_array,array_size_width,array_size_height,dev_states);
+
+        //copy out the result
+        cuda_status = cudaMemcpy(random_array,dev_random_array,sizeof(float)*array_size_width*array_size_height,cudaMemcpyDeviceToHost);//dev_depthMap
+        if(cuda_status != cudaSuccess)
+        {
+            fprintf(stderr,"cudaMemcpy Failed");
+            exit( EXIT_FAILURE );
+        }
+
+        for(int i=0;i<array_size_width*array_size_height;i++)
+        {
+            printf("%f\n",random_array[i]);
+        }
     }
-
-    for(int i=0;i<array_size_width*array_size_height;i++)
+    printf("------------------------------------------------------- \n");
+    printf("The second time \n");
     {
-        //printf("%f\n",random_array[i]);
+        kernel_random<<<grid,threads>>>(dev_random_array,array_size_width,array_size_height,dev_states);
+
+        //copy out the result
+        cuda_status = cudaMemcpy(random_array,dev_random_array,sizeof(float)*array_size_width*array_size_height,cudaMemcpyDeviceToHost);//dev_depthMap
+        if(cuda_status != cudaSuccess)
+        {
+            fprintf(stderr,"cudaMemcpy Failed");
+            exit( EXIT_FAILURE );
+        }
+
+        for(int i=0;i<array_size_width*array_size_height;i++)
+        {
+            printf("%f\n",random_array[i]);
+        }
     }
 
     //free
